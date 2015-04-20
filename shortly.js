@@ -13,6 +13,8 @@ var Click = require('./app/models/click');
 
 var app = express();
 
+var sha256 = require('sha256');
+
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
@@ -23,24 +25,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 
-app.get('/', 
+app.get('/',
 function(req, res) {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/create',
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/links',
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
 
-app.post('/links', 
+app.post('/links',
 function(req, res) {
   var uri = req.body.url;
 
@@ -77,7 +79,51 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.get('/login',
+function(req, res) {
+  res.render('login');
+});
 
+app.post('/login',
+function(req, res) {
+  //handle that shit
+
+});
+
+app.get('/signup',
+function(req, res) {
+  res.render('signup');
+
+
+});
+
+app.post('/signup',
+function(req, res) {
+
+  //handle that shit
+  var username = req.body.username;
+
+  new User({ username: username }).fetch().then(function(found) {
+    if (found) {
+      // res.send(200, found.attributes);
+    } else {
+      var user = new User({
+        username: req.body.username,
+        password: req.body.password,
+      });
+
+
+      user.save().then(function(newUser) {
+      Users.add(newUser);
+
+        console.log(Users.toJSON());
+        //res.send(200, newLink);
+      });
+
+    }
+  });
+
+});
 
 
 /************************************************************/

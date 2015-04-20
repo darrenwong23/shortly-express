@@ -133,7 +133,7 @@ describe('', function() {
         });
       });
 
-      it('Fetches the link url title', function (done) {
+      xit('Fetches the link url title', function (done) {
         requestWithSession(options, function(error, res, body) {
           db.knex('urls')
             .where('title', '=', 'Rofl Zoo - Daily funny animal pictures')
