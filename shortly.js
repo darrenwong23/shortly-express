@@ -10,6 +10,8 @@ var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
+var session = require('express-session');
+var cookieParser = require('cookie-parser');
 
 var app = express();
 
@@ -18,6 +20,8 @@ var sha256 = require('sha256');
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
+app.use(cookieParser('test'));
+app.use(session());
 // Parse JSON (uniform resource locators)
 app.use(bodyParser.json());
 // Parse forms (signup/login)
@@ -27,7 +31,11 @@ app.use(express.static(__dirname + '/public'));
 
 app.get('/',
 function(req, res) {
-  res.render('index');
+  if(req.session.username){
+    res.render('index');
+  }else{
+    res.render('login');
+  }
 });
 
 app.get('/create',
@@ -87,6 +95,38 @@ function(req, res) {
 app.post('/login',
 function(req, res) {
   //handle that shit
+  var username = req.body.username;
+  var password = req.body.password;
+  // regen the hash with salt
+
+  //TODO
+  // Users.reset().fetch().then(function(users) {
+  //   users.forEach(function(user){console.log(user.attributes)});
+  // });
+  //
+  new User({ username: username }).fetch().then(function(found) {
+    console.log("*********************** > " + found);
+    if (found) {
+      var tempUser = new User(found.attributes);
+      console.log(tempUser.check(password))
+      if(tempUser.check(password)){
+
+        req.session.regenerate(function(){
+          req.session.username = username;
+           console.log("******** > session USERNAME --> " + req.session.username);
+            res.redirect('index');
+        });
+
+
+
+
+        }
+      }
+     else {
+      console.log('login fail');
+
+    }
+  });
 
 });
 
@@ -109,15 +149,17 @@ function(req, res) {
     } else {
       var user = new User({
         username: req.body.username,
-        password: req.body.password,
+        password: req.body.password
       });
 
 
       user.save().then(function(newUser) {
       Users.add(newUser);
-
-        console.log(Users.toJSON());
-        //res.send(200, newLink);
+      //res.send(200, newLink);
+      //
+  Users.reset().fetch().then(function(users) {
+    users.forEach(function(user){console.log(user.attributes)});
+  });
       });
 
     }
